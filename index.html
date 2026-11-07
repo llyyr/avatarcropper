@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Crop avatars and banners with multiple selections."
+    />
+    <title>Image cropper</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <input id="file-input" type="file" accept="image/*" hidden />
+    <div id="editor" class="editor">
+      <aside class="controls" aria-label="Crop options">
+        <div class="sidebar-actions">
+          <button id="open-image" class="button primary wide">
+            Open image
+          </button>
+          <button
+            id="hide-options"
+            class="icon-btn"
+            aria-label="Hide options"
+            title="Hide options"
+          >
+            ×
+          </button>
+        </div>
+        <section class="download-controls">
+          <select id="format" aria-label="Export format">
+            <option value="png">PNG</option>
+            <option value="jpg">JPEG</option>
+            <option value="webp">WebP</option>
+            <option id="gif-format" value="gif">GIF</option>
+          </select>
+          <p id="jpeg-note" class="field-note" hidden>
+            JPEG does not support transparency. Use PNG or WebP to preserve it.
+          </p>
+          <button id="download" class="button wide" disabled>
+            Download selection
+          </button>
+          <button id="download-all" class="button wide" disabled>
+            Download all (ZIP)
+          </button>
+        </section>
+        <div class="tabs" role="tablist" aria-label="Options">
+          <button
+            id="tab-crop"
+            data-tab="crop"
+            role="tab"
+            aria-controls="panel-crop"
+            aria-selected="true"
+            class="active"
+          >
+            Crop
+          </button>
+          <button
+            id="tab-style"
+            data-tab="style"
+            role="tab"
+            aria-controls="panel-style"
+            aria-selected="false"
+          >
+            Style
+          </button>
+          <button
+            id="tab-settings"
+            data-tab="settings"
+            role="tab"
+            aria-controls="panel-settings"
+            aria-selected="false"
+          >
+            Settings
+          </button>
+        </div>
+        <div id="panel-crop" role="tabpanel" aria-labelledby="tab-crop">
+          <section>
+            <div class="label">Crop type</div>
+            <div class="segmented">
+              <button data-mode="avatar" class="active">
+                <span class="mini-circle"></span>Avatar
+              </button>
+              <button data-mode="banner">
+                <span class="mini-banner"></span>Banner
+              </button>
+            </div>
+            <div id="avatar-options">
+              <div class="field-label">Export shape</div>
+              <div class="shape-options">
+                <button data-shape="square" class="selected">
+                  <span class="shape-demo square"></span>Square
+                </button>
+                <button data-shape="circle">
+                  <span class="shape-demo circle"></span>Circle
+                </button>
+              </div>
+            </div>
+            <div id="banner-options" hidden>
+              <label class="field-label" for="preset">Banner preset</label>
+              <select id="preset">
+                <option>Discord banner</option>
+                <option>X / Twitter header</option>
+                <option>YouTube banner</option>
+                <option>Twitch banner</option>
+                <option>Custom</option>
+              </select>
+              <div id="custom-banner" class="dimensions mt" hidden>
+                <input
+                  id="custom-width"
+                  type="number"
+                  min="16"
+                  max="4096"
+                  value="1000"
+                  aria-label="Custom banner width"
+                />
+                <span>×</span>
+                <input
+                  id="custom-height"
+                  type="number"
+                  min="16"
+                  max="4096"
+                  value="400"
+                  aria-label="Custom banner height"
+                />
+              </div>
+              <p id="preset-size" class="field-note">600 × 240 px</p>
+              <button id="add-banner" class="button wide" disabled>
+                Add banner crop
+              </button>
+            </div>
+          </section>
+          <section>
+            <div class="section-title">
+              Selections <span id="selection-count">1</span>
+            </div>
+            <div id="selection-list" class="selection-list"></div>
+            <button id="add-selection" class="add-selection" disabled>
+              + Add selection
+            </button>
+          </section>
+          <section>
+            <div class="section-title">
+              Transform<button id="reset-transform" class="reset-text">
+                Reset
+              </button>
+            </div>
+            <div class="range-label">
+              <label for="rotation">Rotation</label
+              ><output id="rotation-value" for="rotation">0°</output>
+            </div>
+            <input id="rotation" type="range" min="-180" max="180" value="0" />
+            <div class="flip-buttons">
+              <button id="flip-x" aria-pressed="false">Flip H</button>
+              <button id="flip-y" aria-pressed="false">Flip V</button>
+            </div>
+          </section>
+        </div>
+        <div
+          id="panel-style"
+          role="tabpanel"
+          aria-labelledby="tab-style"
+          hidden
+        >
+          <section>
+            <label class="field-label" for="selection-name"
+              >Selection name</label
+            >
+            <input id="selection-name" />
+            <div class="field-label">Border</div>
+            <div class="segmented">
+              <button data-border="none" class="active">None</button>
+              <button data-border="gradient">Gradient</button>
+            </div>
+            <div id="gradient-options" hidden>
+              <div id="gradient-preview" class="gradient-preview"></div>
+              <div
+                id="color-stops"
+                class="flex flex-wrap items-center gap-1 mt-2"
+              ></div>
+              <div class="flex gap-1 mt-2">
+                <button
+                  id="add-color"
+                  class="icon-btn"
+                  aria-label="Add color stop"
+                  title="Add color stop"
+                >
+                  +
+                </button>
+                <button
+                  id="remove-color"
+                  class="icon-btn"
+                  aria-label="Remove last color stop"
+                  title="Remove last color stop"
+                >
+                  −
+                </button>
+              </div>
+              <label class="field-label" for="gradient-angle"
+                >Gradient angle · <output id="angle-value">45°</output></label
+              >
+              <input
+                id="gradient-angle"
+                type="range"
+                min="0"
+                max="360"
+                value="45"
+              />
+              <label class="field-label" for="border-width"
+                >Border width · <output id="border-value">4%</output></label
+              >
+              <input
+                id="border-width"
+                type="range"
+                min="0"
+                max="25"
+                value="4"
+              />
+            </div>
+          </section>
+          <section>
+            <div class="section-title">Output size</div>
+            <label class="setting-row" for="resize-output">
+              <span>Resize output</span>
+              <input id="resize-output" type="checkbox" disabled />
+            </label>
+            <div class="dimensions">
+              <input
+                id="output-width"
+                type="number"
+                min="1"
+                max="4096"
+                value="0"
+                aria-label="Output width"
+              />
+              <span>×</span
+              ><input
+                id="output-height"
+                type="number"
+                value="0"
+                readonly
+                aria-label="Output height"
+              /><span>px</span>
+            </div>
+            <label class="field-label" for="crop-width"
+              >Crop width in source pixels</label
+            >
+            <input id="crop-width" type="number" min="1" value="1" />
+          </section>
+        </div>
+        <div
+          id="panel-settings"
+          role="tabpanel"
+          aria-labelledby="tab-settings"
+          hidden
+        >
+          <section>
+            <div class="section-title">Workspace settings</div>
+            <label class="setting-row"
+              ><span>Rule of thirds</span
+              ><input id="guides" type="checkbox" checked
+            /></label>
+            <label class="setting-row"
+              ><span>Discord banner guidelines</span
+              ><input id="banner-guide" type="checkbox"
+            /></label>
+            <label class="setting-row"
+              ><span>Smooth edges (antialias)</span
+              ><input id="smooth" type="checkbox" checked
+            /></label>
+            <label class="setting-row"
+              ><span>Lock center when resizing</span
+              ><input id="lock" type="checkbox"
+            /></label>
+            <label class="field-label" for="mask-opacity"
+              >Outside mask · <output id="mask-value">35%</output></label
+            >
+            <input id="mask-opacity" type="range" min="0" max="85" value="35" />
+          </section>
+          <section>
+            <div class="section-title">Preview sizes</div>
+            <div id="preview-chips" class="preview-chips"></div>
+            <div class="add-preview">
+              <input
+                id="preview-size"
+                type="number"
+                min="16"
+                max="256"
+                value="80"
+                aria-label="New preview size"
+              />
+              <button id="add-preview" class="button">Add</button>
+            </div>
+          </section>
+        </div>
+        <section class="sidebar-tools">
+          <div class="section-title">Zoom</div>
+          <div class="zoom-controls">
+            <button id="zoom-out" class="button" aria-label="Zoom out">−</button
+            ><output id="zoom-value">100%</output>
+            <button id="zoom-in" class="button" aria-label="Zoom in">+</button
+            ><button id="fit" class="button">Fit</button>
+          </div>
+          <button id="center" class="button wide mt" disabled>
+            Center selection
+          </button>
+        </section>
+        <details id="previews">
+          <summary>Previews</summary>
+          <div id="size-previews" class="size-previews"></div>
+        </details>
+        <button id="shortcuts" class="help-button">Shortcuts</button>
+      </aside>
+      <main id="workspace" class="image-page" aria-label="Image workspace">
+        <button id="show-options" class="show-options button" hidden>
+          Options
+        </button>
+        <div id="pan-area" class="stage-scroll" hidden>
+          <div id="stage" class="stage">
+            <canvas id="image" aria-label="Source image for cropping"></canvas>
+            <svg
+              class="outside-mask"
+              width="100%"
+              height="100%"
+              aria-hidden="true"
+            >
+              <defs>
+                <mask
+                  id="crop-mask"
+                  maskUnits="objectBoundingBox"
+                  maskContentUnits="objectBoundingBox"
+                >
+                  <rect width="1" height="1" fill="white" />
+                  <g id="mask-holes"></g>
+                </mask>
+              </defs>
+              <rect
+                width="100%"
+                height="100%"
+                fill="black"
+                id="mask-fill"
+                opacity="0.35"
+                mask="url(#crop-mask)"
+              />
+            </svg>
+            <div id="crop-boxes"></div>
+            <div id="discord-guide" class="discord-guide" hidden>
+              DISCORD BANNER SAFE AREA
+            </div>
+          </div>
+        </div>
+        <button id="empty-upload" class="empty-upload">
+          <span>Open or drop an image</span
+          ><small>or paste from clipboard</small>
+        </button>
+        <div id="image-info" class="image-info" hidden></div>
+      </main>
+    </div>
+    <div id="drop-overlay" class="drop-overlay" hidden>Drop image</div>
+    <div id="toast" class="toast" role="status" hidden>
+      <span></span><button aria-label="Dismiss">×</button>
+    </div>
+    <div id="export-progress" class="export-progress" role="status" hidden>
+      <span class="spinner"></span><span id="progress-text"></span>
+    </div>
+    <dialog id="help" class="modal">
+      <button id="close-help" class="modal-close icon-btn" aria-label="Close">
+        ×
+      </button>
+      <h2>Shortcuts</h2>
+      <p>Drag a selection to move it. Drag a corner to resize.</p>
+      <p>
+        Drag outside selections to pan. Scroll to zoom around the pointer. Fit
+        resets the view.
+      </p>
+      <p><kbd>↑ ↓ ← →</kbd> Nudge selection</p>
+      <p><kbd>Shift + arrow</kbd> Move faster</p>
+      <p><kbd>Ctrl / ⌘ + V</kbd> Paste image</p>
+      <p><kbd>?</kbd> Shortcuts</p>
+      <p><kbd>Esc</kbd> Close</p>
+    </dialog>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "avatarcropper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Client-side avatar and banner cropper",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "npm run build && node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs"
+  },
+  "dependencies": {
+    "gifenc": "^1.0.3",
+    "gifuct-js": "^2.1.2",
+    "jszip": "^3.10.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "tailwindcss": "^4.3.5",
+    "esbuild": "^0.25.0"
+  }
+}
